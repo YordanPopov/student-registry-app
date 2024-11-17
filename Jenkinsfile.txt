@@ -1,46 +1,43 @@
-pipeline {
+pipeline{
     agent any
 
-    environment {
-        NODE_VERSION = '21.7.1'
-        SERVICE_ID = 'render-service-id'
-        RENDER_API_KEY = 'render-api-key'
-    }
-
-    tools {
-        nodejs "${NODE_VERSION}"
-    }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
+    stages{
+        stage('Checkout'){
+            steps{
+                git branch: 'main', url: 'https://github.com/YordanPopov/student-registry-app'
             }
         }
 
-        stage('Install dependencies') {
-            steps {
-                bat 'npm install'
-                bat 'npm install -g wait-on kill-port'
+        stage("Install dependencies"){
+            steps{
+                script{
+                        bat 'npm install'
+                }
             }
         }
 
-        stage('Run tests') {
-            steps {
-                bat 'start /b npm run start'
-                bat 'wait-on http://localhost:8080'
-                bat 'npm test'
-                bat 'kill-port 8080'
+        stage("Start application and run tests")
+        {
+            steps{
+                script{
+                    bat 'start /b npm start'
+                }
+            }
+        }
+
+        stage("run tests")
+        {
+            steps{
+                script{
+                    bat 'npm test'
+                }
             }
         }
     }
 
     post {
-        always {
-            echo 'CI Pipeline completed.'
-        }
-        failure {
-            bat 'kill-port 8080'
+        always{
+            echo "CI pipeline completed"
         }
     }
 }
